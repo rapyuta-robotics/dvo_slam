@@ -16,6 +16,8 @@ find_package(TBB REQUIRED)
 
 #LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-vectorize")
+
 IF(G2O_FOUND)
 message(STATUS "found g2o ${G2O_FOUND}")
 ELSE()
@@ -81,12 +83,12 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
-#add_executable(camera_keyframe_tracker
-#  src/camera_keyframe_tracker_node.cpp
-#)
+add_executable(camera_keyframe_tracker
+  src/camera_keyframe_tracker_node.cpp
+)
 
-#target_link_libraries(camera_keyframe_tracker
-#  ${PROJECT_NAME}
-#)
+target_link_libraries(camera_keyframe_tracker
+  ${PROJECT_NAME}
+)
 
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)

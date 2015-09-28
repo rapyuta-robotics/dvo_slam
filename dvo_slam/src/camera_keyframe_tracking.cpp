@@ -286,7 +286,7 @@ void CameraKeyframeTracker::handleImages(
       update(current->level(0), accumulated_transform).
       show(dvo::visualization::CameraVisualizer::ShowCamera);
 
-  publishTransform(h, accumulated_transform, "base_link_estimate");
+  publishTransform(h, accumulated_transform, "realsense_frame");
 
   sw_callback.stopAndPrint();
 }

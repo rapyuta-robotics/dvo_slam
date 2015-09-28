@@ -14,6 +14,8 @@ find_package(OpenCV 2.4.8 REQUIRED)
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(cfg/CameraDenseTracker.cfg)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-vectorize")
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES dvo_ros
