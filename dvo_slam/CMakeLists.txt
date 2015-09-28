@@ -36,7 +36,7 @@ include_directories(
   ${dvo_slam_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${G2O_INCLUDE_DIR}
+#  ${G2O_INCLUDE_DIR}
   ${CSPARSE_INCLUDE_DIR}
 )
 
