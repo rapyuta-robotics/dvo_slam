@@ -41,16 +41,16 @@
   	
 	
 	<node pkg="nodelet" type="nodelet" name="Register" args="load depth_image_proc/register standalone_nodelet">
-		<remap from="rgb/camera_info" to="/camera/color/camera_info" />
+		<remap from="rgb/camera_info" to="/camera/rgb/camera_info" />
 		<remap from="depth/camera_info" to="/camera/depth/camera_info" />
-		<remap from="depth/image_rect" to="/camera/depth/image_raw" />
+		<remap from="depth/image_rect" to="/camera/depth/image_rect_raw" />
         </node>
 
 	  <node launch-prefix="$(arg launch_prefix)" pkg="dvo_slam" type="camera_keyframe_tracker" name="camera_tracker" output="screen">
-	    <remap from="camera/rgb/image_rect" to="/camera/color/image_raw" />
-	    <remap from="camera/rgb/camera_info" to="/camera/color/camera_info" />
-	    <remap from="camera/depth_registered/image_rect_raw" to="/depth_registered/image_rect" />
-	    <remap from="camera/depth_registered/camera_info" to="/depth_registered/camera_info" />
+	    <remap from="camera/rgb/image_rect" to="/camera/rgb/image_raw" />
+	    <remap from="camera/rgb/camera_info" to="/camera/rgb/camera_info" />
+	    <remap from="camera/depth_registered/image_rect_raw" to="/camera/depth_registered/image_raw" />
+	    <remap from="camera/depth_registered/camera_info" to="/camera/depth_registered/camera_info" />
 	    
 	
 	    <param name="reconstruction" type="bool" value="true" />

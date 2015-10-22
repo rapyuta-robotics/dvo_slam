@@ -297,12 +297,12 @@ void CameraDenseTracker::handleImages(
     ROS_WARN("fail");
   }
 
-  publishTransform(h, accumulated_transform * from_baselink_to_asus.inverse(), "realsense_frame");
+  publishTransform(h, accumulated_transform * from_baselink_to_asus.inverse(), "base_link_estimate");
 //  publishTransform(rgb_image_msg->header, first_transform.inverse() * accumulated_transform, "asus_estimate");
 
   if(use_dense_tracking_estimate_)
   {
-    publishPose(h, accumulated_transform * from_baselink_to_asus.inverse(), "realsense_frame");
+    publishPose(h, accumulated_transform * from_baselink_to_asus.inverse(), "baselink_estimate");
   }
 
   sw_callback.stopAndPrint();
