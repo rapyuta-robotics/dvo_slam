@@ -32,24 +32,28 @@ Checkout the branch for your ROS version into a folder in your `ROS_PACKAGE_PATH
  *  ROS Fuerte:
     
     ```bash
-    git clone -b fuerte git://github.com/tum-vision/dvo_slam.git
-    rosmake dvo_core dvo_ros dvo_slam dvo_benchmark
+    git clone -b asus-indigo https://github.com/rapyuta/dvo_slam
+    roscd catkin_ws
+    catkin_make
     ```
 
 ## Usage
-
+Connect asus.
 Estimating the camera trajectory from an RGB-D image stream:
 
-*TODO*
+```bash
+roslaunch dvo_ros quickstart.launch
+```
+In a different terminal:
 
-For visualization:
+```bash
+rosrun rqt_reconfigure rqt_reconfigure
+```
+* Enable camera/driver/depth_registration
+* In camera_tracker enable run_dense_tracking, use_dense_tracking_estimate, use_weighting, reconstruction.
 
- *  Start RVIZ
- *  Set the *Target Frame* to `/world`
- *  Add an *Interactive Marker* display and set its *Update Topic* to `/dvo_vis/update`
- *  Add a *PointCloud2* display and set its *Topic* to `/dvo_vis/cloud`
+This will show point cloud on the rviz window. Move asus slowly to update the position of new pointclouds.   
 
-The red camera shows the current camera position. The blue camera displays the initial camera position.
 
 ## Publications
 
