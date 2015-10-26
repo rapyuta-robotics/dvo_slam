@@ -69,6 +69,7 @@ DenseTracker::DenseTracker(const DenseTracker& other) :
   configure(other.configuration());
 }
 
+/** @brief configuring tracker for dense odometry */
 void DenseTracker::configure(const Config& config)
 {
   assert(config.IsSane());
@@ -128,6 +129,7 @@ bool DenseTracker::match(dvo::core::RgbdImagePyramid& reference, dvo::core::Rgbd
   return match(reference_selection_, current, result);
 }
 
+/** This function finds transform between current and Reference frame */
 bool DenseTracker::match(dvo::core::PointSelection& reference, dvo::core::RgbdImagePyramid& current, dvo::DenseTracker::Result& result)
 {
   current.compute(cfg.getNumLevels());

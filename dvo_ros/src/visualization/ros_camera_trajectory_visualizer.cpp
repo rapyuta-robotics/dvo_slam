@@ -53,7 +53,7 @@ public:
     image_topic_(image_topic),
     point_cloud_aggregator_(point_cloud_aggregator),
     visibility_(ShowCameraAndCloud),
-    user_override_(false)
+    user_override_(true)
   {
     name_ = name;
     createInteractiveCameraMarker(marker_);
@@ -65,7 +65,7 @@ public:
     marker_server_.erase(name());
     point_cloud_aggregator_.remove(name());
   };
-
+  // changing to show camera only
   virtual void show(Option option = ShowCameraAndCloud)
   {
     if(!user_override_)
@@ -327,6 +327,7 @@ private:
 
     m.points.push_back(p);
 
+    //Commenting
     parent.markers.push_back(m);
     parent.markers.push_back(mbox);
   }
@@ -364,7 +365,7 @@ public:
     p.x = pose.translation()(0);
     p.y = pose.translation()(1);
     p.z = pose.translation()(2);
-
+    //changing
     marker_.controls[0].markers[0].points.push_back(p);
 
     marker_server_.insert(marker_);

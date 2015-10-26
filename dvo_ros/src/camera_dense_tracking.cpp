@@ -51,17 +51,21 @@ CameraDenseTracker::CameraDenseTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_
   vis_(new dvo::visualization::NoopCameraTrajectoryVisualizer()),
   use_dense_tracking_estimate_(false)
 {
-  ROS_INFO("CameraDenseTracker::ctor(...)");
+  ROS_INFO("1: CameraDenseTracker::Constructor(...)");
 
+  ROS_INFO("2: Publishing Pose");
   pose_pub_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("rgbd/pose", 1);
 
+  ROS_INFO("3: Reconfigure server callback");
   ReconfigureServer::CallbackType reconfigure_server_callback = boost::bind(&CameraDenseTracker::handleConfig, this, _1, _2);
   reconfigure_server_.setCallback(reconfigure_server_callback);
 
+  ROS_INFO("4: Try getting transform");
   dvo_ros::util::tryGetTransform(from_baselink_to_asus, tl, "base_link", "asus");
 
-  ROS_INFO_STREAM("transformation: base_link -> asus" << std::endl << from_baselink_to_asus.matrix());
+  ROS_INFO_STREAM("5: transformation: base_link -> asus" << std::endl << from_baselink_to_asus.matrix());
 
+  ROS_INFO("6: Subscribe to pose");
   pose_sub_ = nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>("pelican/pose", 1, &CameraDenseTracker::handlePose, this);
 
   latest_absolute_transform_.setIdentity();
@@ -86,6 +90,7 @@ bool CameraDenseTracker::hasChanged(const sensor_msgs::CameraInfo::ConstPtr& cam
 
 void CameraDenseTracker::reset(const sensor_msgs::CameraInfo::ConstPtr& camera_info_msg)
 {
+  ROS_INFO("Resetting camera dense tracker");
   //IntrinsicMatrix intrinsics = IntrinsicMatrix::create(camera_info_msg->K[0], camera_info_msg->K[4], camera_info_msg->K[2], camera_info_msg->K[5]);
   IntrinsicMatrix intrinsics = IntrinsicMatrix::create(camera_info_msg->P[0], camera_info_msg->P[5], camera_info_msg->P[2], camera_info_msg->P[6]);
 
@@ -107,6 +112,7 @@ void CameraDenseTracker::reset(const sensor_msgs::CameraInfo::ConstPtr& camera_i
 
 void CameraDenseTracker::handleConfig(dvo_ros::CameraDenseTrackerConfig& config, uint32_t level)
 {
+  ROS_INFO("Handling Config");
   if(level == 0) return;
 
   if(level & CameraDenseTracker_RunDenseTracking)
@@ -160,6 +166,7 @@ void CameraDenseTracker::handleConfig(dvo_ros::CameraDenseTrackerConfig& config,
   {
     vis_->reset();
     delete vis_;
+    ROS_INFO("Visualizer reset");
 
     if(config.reconstruction)
     {
@@ -175,6 +182,7 @@ void CameraDenseTracker::handleConfig(dvo_ros::CameraDenseTrackerConfig& config,
 
 void CameraDenseTracker::handlePose(const geometry_msgs::PoseWithCovarianceStampedConstPtr& pose)
 {
+  ROS_INFO("Handling pose");
   tf::Transform tmp;
 
   tf::poseMsgToTF(pose->pose.pose, tmp);
@@ -184,6 +192,7 @@ void CameraDenseTracker::handlePose(const geometry_msgs::PoseWithCovarianceStamp
     publishPose(pose->header, latest_absolute_transform_, "baselink_estimate");
 }
 
+// change here for resolution of images
 void CameraDenseTracker::handleImages(
     const sensor_msgs::Image::ConstPtr& rgb_image_msg,
     const sensor_msgs::Image::ConstPtr& depth_image_msg,
@@ -191,6 +200,8 @@ void CameraDenseTracker::handleImages(
     const sensor_msgs::CameraInfo::ConstPtr& depth_camera_info_msg
 )
 {
+
+  ROS_INFO("Handling Images");
   static stopwatch sw_callback("callback");
   sw_callback.start();
 
@@ -239,6 +250,12 @@ void CameraDenseTracker::handleImages(
     depth = depth_in;
   }
 
+  /*
+  //reducing the resolution of rgb and depth images
+  cv::pyrDown( intensity, intensity, cv::Size( intensity.cols/2, intensity.rows/2) );
+  cv::pyrDown( depth, depth, cv::Size( depth.cols/2, depth.rows/2) );
+  */
+
   reference.swap(current);
   current = camera->create(intensity, depth);
 
@@ -252,7 +269,7 @@ void CameraDenseTracker::handleImages(
   {
     accumulated_transform = latest_absolute_transform_ * from_baselink_to_asus;
     first = accumulated_transform;
-
+    ROS_INFO("Visualizing transformed");
     vis_->camera("first")->
         color(dvo::visualization::Color::blue()).
         update(current->level(0), accumulated_transform).
@@ -266,8 +283,9 @@ void CameraDenseTracker::handleImages(
   static stopwatch sw_match("match", 100);
   sw_match.start();
 
+  ROS_INFO("Starting tracker match");
   bool success = tracker->match(*reference, *current, transform);
-
+  ROS_INFO_STREAM("Tracker matching is :"<< success);
   sw_match.stopAndPrint();
 
   if(success)
@@ -280,11 +298,11 @@ void CameraDenseTracker::handleImages(
     //tracker->getCovarianceEstimate(covariance);
 
     //std::cerr << covariance << std::endl << std::endl;
-
+    ROS_INFO("Visualizing trajectory");
     vis_->trajectory("estimate")->
         color(dvo::visualization::Color::red())
         .add(accumulated_transform);
-
+    ROS_INFO("Visualizing current frame");
     vis_->camera("current")->
         color(dvo::visualization::Color::red()).
         update(current->level(0), accumulated_transform).
@@ -296,6 +314,7 @@ void CameraDenseTracker::handleImages(
     reference.swap(current);
     ROS_WARN("fail");
   }
+
 
   publishTransform(h, accumulated_transform * from_baselink_to_asus.inverse(), "base_link_estimate");
 //  publishTransform(rgb_image_msg->header, first_transform.inverse() * accumulated_transform, "asus_estimate");
@@ -310,6 +329,7 @@ void CameraDenseTracker::handleImages(
 
 void CameraDenseTracker::publishTransform(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
 {
+  ROS_INFO("Publishing transform");
   static tf::TransformBroadcaster tb;
 
   tf::StampedTransform tf_transform;
@@ -324,6 +344,7 @@ void CameraDenseTracker::publishTransform(const std_msgs::Header& header, const 
 
 void CameraDenseTracker::publishPose(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
 {
+  ROS_INFO("Publishing Pose");
   if(pose_pub_.getNumSubscribers() == 0) return;
 
   geometry_msgs::PoseWithCovarianceStampedPtr msg(new geometry_msgs::PoseWithCovarianceStamped);

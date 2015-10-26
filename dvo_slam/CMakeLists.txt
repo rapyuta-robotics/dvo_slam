@@ -4,7 +4,7 @@ project(dvo_slam)
 
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 
-find_package(catkin REQUIRED COMPONENTS roscpp dynamic_reconfigure dvo_core dvo_ros sensor_msgs image_transport message_filters cv_bridge visualization_msgs interactive_markers)
+find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs dynamic_reconfigure dvo_core dvo_ros sensor_msgs image_transport message_filters cv_bridge visualization_msgs interactive_markers )
 find_package(cmake_modules REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(G2O REQUIRED)
@@ -27,7 +27,15 @@ ENDIF()
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(cfg/GraphVisualizer.cfg cfg/KeyframeSlam.cfg)
 
+# messages
+add_message_files(FILES
+  PoseStampedArray.msg
+)
+
+generate_messages(DEPENDENCIES std_msgs geometry_msgs )
+
 catkin_package(
+  CATKIN_DEPENDS message_runtime std_msgs geometry_msgs
   INCLUDE_DIRS include
   LIBRARIES dvo_slam
   DEPENDS OpenCV
@@ -42,8 +50,7 @@ include_directories(
   ${CSPARSE_INCLUDE_DIR}
 )
 
-# messages
-#rosbuild_genmsg()
+
 
 # VTK library
 #find_package(VTK REQUIRED)
