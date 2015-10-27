@@ -46,7 +46,7 @@ include_directories(
   ${dvo_slam_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-#  ${G2O_INCLUDE_DIR}
+  ${G2O_INCLUDE_DIRS}
   ${CSPARSE_INCLUDE_DIR}
 )
 
@@ -56,27 +56,27 @@ include_directories(
 #find_package(VTK REQUIRED)
 #include_directories(${VTK_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} 
+add_library(${PROJECT_NAME}
   src/keyframe_tracker.cpp
   src/keyframe_graph.cpp
   src/keyframe_constraint_search.cpp
   src/camera_keyframe_tracking.cpp
-  
+
   src/config.cpp
-  
+
   src/tracking_result_evaluation.cpp
   src/local_map.cpp
   src/local_tracker.cpp
-  
+
   src/constraints/constraint_proposal.cpp
   src/constraints/constraint_proposal_voter.cpp
   src/constraints/constraint_proposal_validator.cpp
-  
+
   src/serialization/map_serializer_interface.cpp
   src/serialization/map_serializer.cpp
-  
+
   src/visualization/graph_visualizer.cpp
-  
+
   src/types.cpp
 )
 

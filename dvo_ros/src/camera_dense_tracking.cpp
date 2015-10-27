@@ -26,8 +26,8 @@
 
 #include <dvo/core/surface_pyramid.h>
 #include <dvo/util/stopwatch.h>
-//#include <dvo/visualization/visualizer.h>
-//#include <dvo/visualization/pcl_camera_trajectory_visualizer.h>
+//#include <dvo/visualization/visualizer.h> //why commented?
+//#include <dvo/visualization/pcl_camera_trajectory_visualizer.h> //why commented ?
 
 #include <dvo_ros/camera_dense_tracking.h>
 #include <dvo_ros/util/util.h>
@@ -270,11 +270,12 @@ void CameraDenseTracker::handleImages(
     accumulated_transform = latest_absolute_transform_ * from_baselink_to_asus;
     first = accumulated_transform;
     ROS_INFO("Visualizing transformed");
+    /*
     vis_->camera("first")->
         color(dvo::visualization::Color::blue()).
-        update(current->level(0), accumulated_transform).
+        update(current->level(0), latest_absolute_transform_).
         show();
-
+    */
     return;
   }
 
@@ -293,20 +294,22 @@ void CameraDenseTracker::handleImages(
     frames_since_last_success = 0;
     accumulated_transform = accumulated_transform * transform;
 
-    Eigen::Matrix<double, 6, 6> covariance;
+    Eigen::Matrix<double, 6, 6> covariance; // Is this used?
 
     //tracker->getCovarianceEstimate(covariance);
 
     //std::cerr << covariance << std::endl << std::endl;
     ROS_INFO("Visualizing trajectory");
     vis_->trajectory("estimate")->
-        color(dvo::visualization::Color::red())
+        color(dvo::visualization::Color::blue())
         .add(accumulated_transform);
     ROS_INFO("Visualizing current frame");
+
     vis_->camera("current")->
         color(dvo::visualization::Color::red()).
         update(current->level(0), accumulated_transform).
         show();
+    
   }
   else
   {

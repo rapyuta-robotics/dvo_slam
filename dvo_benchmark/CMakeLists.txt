@@ -21,7 +21,7 @@ include_directories(
   "include"
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-#  ${G2O_INCLUDE_DIR}
+  ${G2O_INCLUDE_DIRS}
 )
 
 

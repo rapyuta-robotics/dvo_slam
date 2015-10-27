@@ -24,9 +24,9 @@ These packages provide an implementation of the rigid body motion estimation of 
 ## Installation
 
  *  Dependency(updating the list)
-    -libg2o
-    -vtk
-    -sophus
+    * libg2o
+    * vtk
+    * tbb
 
  *  ROS Indigo:
 

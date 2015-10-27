@@ -716,11 +716,8 @@ private:
       v1->setUserData(0);
       //v2->edges().clear();
       v2->setHessianIndex(-1);
+      keyframegraph_.addVertex(v2);
 
-      if(!keyframegraph_.addVertex(v2))
-      {
-        throw std::runtime_error("failed to add vertex to g2o graph!");
-      }
     }
     for (g2o::HyperGraph::EdgeSet::iterator it=g->edges().begin(); it!=g->edges().end(); ++it)
     {
@@ -748,14 +745,7 @@ private:
     // update keyframe pose, because its probably different from the one, which was used during local map initialization
     if(!keyframes_.empty())
     {
-      g2o::HyperGraph::Vertex *last_kv_tmp = keyframegraph_.vertex(next_keyframe_id_ - 1);
-      
-      if(last_kv_tmp == 0)
-      {
-        throw std::runtime_error("last_kv_tmp == nullptr");
-      }
-
-      g2o::VertexSE3* last_kv = dynamic_cast<g2o::VertexSE3*>(last_kv_tmp);
+      g2o::VertexSE3* last_kv = (g2o::VertexSE3*) keyframegraph_.vertex(next_keyframe_id_ - 1);
       g2o::OptimizableGraph::EdgeSet::iterator e = std::find_if(last_kv->edges().begin(), last_kv->edges().end(), FindEdge(next_keyframe_id_ - 1, next_odometry_vertex_id_));
 
       assert(e != last_kv->edges().end());
@@ -787,15 +777,9 @@ private:
 
     // get last odometry vertex from global graph, which will become new keyframe vertex
     g2o::VertexSE3* kv = (g2o::VertexSE3*) keyframegraph_.vertex(next_odometry_vertex_id_);
-    if(kv == 0)
-    {
-      throw std::runtime_error("kv == nullptr");
-    }
-    if(!keyframegraph_.changeId(kv, next_keyframe_id_))
-    {
-      throw std::runtime_error("keyframegraph_.changeId(kv, next_keyframe_id_) failed!");
-    }
-
+    assert(kv != 0);
+    assert(keyframegraph_.changeId(kv, next_keyframe_id_));
+    
     if(!keyframes_.empty())
     {
       g2o::VertexSE3* kv = (g2o::VertexSE3*) keyframegraph_.vertex(next_keyframe_id_);

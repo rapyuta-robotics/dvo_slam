@@ -53,7 +53,7 @@ public:
     image_topic_(image_topic),
     point_cloud_aggregator_(point_cloud_aggregator),
     visibility_(ShowCameraAndCloud),
-    user_override_(true)
+    user_override_(false)
   {
     name_ = name;
     createInteractiveCameraMarker(marker_);
@@ -359,6 +359,7 @@ public:
 
   virtual TrajectoryVisualizer& add(const Eigen::Affine3d& pose)
   {
+    ROS_INFO("Updating marker");
     updateMarkerColor();
 
     geometry_msgs::Point p;
