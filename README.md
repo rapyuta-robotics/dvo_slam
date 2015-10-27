@@ -5,32 +5,31 @@
 These packages provide an implementation of the rigid body motion estimation of an RGB-D camera from consecutive images.
 
  *  **dvo_core**
-    
-    Core implementation of the motion estimation algorithm. 
-    
+
+    Core implementation of the motion estimation algorithm.
+
  *  **dvo_ros**
-    
+
     Integration of *dvo_core* with ROS.
-    
+
  *  **dvo_slam**
-    
+
     Pose graph SLAM system based on *dvo_core* and integration with ROS.
-    
+
  *  **dvo_benchmark**
-    
+
     Integration of *dvo_slam* with TUM RGB-D benchmark, see http://vision.in.tum.de/data/datasets/rgbd-dataset.
-    
- *  **sophus**
-    
-    ROS package wrapper for Hauke Strasdat's Sophus library, see https://github.com/strasdat/Sophus.
-    
+
 
 ## Installation
 
-Checkout the branch for your ROS version into a folder in your `ROS_PACKAGE_PATH` and build the packages with `rosmake`.
+ *  Dependency(updating the list)
+    -libg2o
+    -vtk
+    -sophus
 
- *  ROS Fuerte:
-    
+ *  ROS Indigo:
+
     ```bash
     git clone -b asus-indigo https://github.com/rapyuta/dvo_slam
     roscd catkin_ws

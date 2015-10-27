@@ -60,15 +60,19 @@ CameraKeyframeTracker::CameraKeyframeTracker(ros::NodeHandle& nh, ros::NodeHandl
 {
   ROS_INFO("CameraDenseTracker::ctor(...)");
 
+  ROS_INFO("Advertising pose and graph ");
   pose_publisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 1);
   graph_publisher = nh.advertise<dvo_slam::PoseStampedArray>("graph", 1);
 
+  ROS_INFO("Tracker reconfigure server");
   TrackerReconfigureServer::CallbackType tracker_reconfigure_server_callback = boost::bind(&CameraKeyframeTracker::handleTrackerConfig, this, _1, _2);
   tracker_reconfigure_server_.setCallback(tracker_reconfigure_server_callback);
 
+  ROS_INFO("SLAM reconfigure server");
   SlamReconfigureServer::CallbackType slam_reconfigure_server_callback = boost::bind(&CameraKeyframeTracker::handleSlamConfig, this, _1, _2);
   slam_reconfigure_server_.setCallback(slam_reconfigure_server_callback);
 
+  ROS_INFO("setting identity");
   accumulated_transform.setIdentity();
 }
 
@@ -139,7 +143,7 @@ void CameraKeyframeTracker::handleTrackerConfig(dvo_ros::CameraDenseTrackerConfi
     {
       config.finest_level = config.coarsest_level;
     }
-
+    ROS_INFO("Updating configure from dynamic reconfigure");
     dvo_ros::util::updateConfigFromDynamicReconfigure(config, tracker_cfg);
 
     // we are called in the ctor as well, but at this point we don't have a tracker instance
@@ -165,8 +169,9 @@ void CameraKeyframeTracker::handleSlamConfig(dvo_slam::KeyframeSlamConfig& confi
   if(keyframe_tracker)
   {
     boost::mutex::scoped_lock lock(tracker_mutex_);
-
+    ROS_INFO("Configuring keframe selection");
     keyframe_tracker->configureKeyframeSelection(keyframe_tracker_cfg);
+    ROS_INFO("Configuring mapping");
     keyframe_tracker->configureMapping(graph_cfg);
 
     if(config.graph_opt_final)
@@ -183,6 +188,7 @@ void CameraKeyframeTracker::handleSlamConfig(dvo_slam::KeyframeSlamConfig& confi
 void CameraKeyframeTracker::onMapChanged(dvo_slam::KeyframeGraph& map)
 {
 // uncommenting this
+
   dvo_slam::PoseStampedArray msg;
   dvo_slam::serialization::MessageSerializer serializer(msg);
   serializer.serialize(map);

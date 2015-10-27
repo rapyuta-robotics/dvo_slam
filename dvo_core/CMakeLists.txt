@@ -11,6 +11,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenCV 2.4.8 REQUIRED)
 find_package(TBB REQUIRED)
 
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES dvo_core dvo_visualization
@@ -26,9 +27,10 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
+  /usr/include/vtk-5.8
 )
 
-add_library(dvo_core 
+add_library(dvo_core
     src/core/interpolation.cpp
     src/core/intrinsic_matrix.cpp
     src/core/least_squares.cpp
@@ -38,26 +40,27 @@ add_library(dvo_core
     src/core/point_selection.cpp
     src/core/surface_pyramid.cpp
     src/core/weight_calculation.cpp
-    
+
     src/util/histogram.cpp
-    
+
     src/visualization/camera_trajectory_visualizer.cpp
-    
+
     src/dense_tracking.cpp
     src/dense_tracking_impl.cpp
     src/dense_tracking_config.cpp
 )
 
-target_link_libraries(dvo_core 
+target_link_libraries(dvo_core
     tbb
-    boost_thread 
+    boost_thread
     ${PCL_LIBRARIES}
+    libvtkCommon.so
 )
 
 add_library(dvo_visualization
     src/visualization/async_point_cloud_builder.cpp
     src/visualization/point_cloud_aggregator.cpp
-#    src/visualization/pcl_camera_trajetory_visualizer.cpp
+    src/visualization/pcl_camera_trajetory_visualizer.cpp
 )
 
 target_link_libraries(dvo_visualization

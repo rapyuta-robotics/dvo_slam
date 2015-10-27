@@ -328,7 +328,7 @@ private:
     m.points.push_back(p);
 
     //Commenting
-    parent.markers.push_back(m);
+    //parent.markers.push_back(m);
     parent.markers.push_back(mbox);
   }
 
@@ -337,9 +337,9 @@ private:
     marker.controls[0].markers[0].color.r = color().r;
     marker.controls[0].markers[0].color.g = color().g;
     marker.controls[0].markers[0].color.b = color().b;
-    marker.controls[0].markers[1].color.r = color().r;
-    marker.controls[0].markers[1].color.g = color().g;
-    marker.controls[0].markers[1].color.b = color().b;
+    //marker.controls[0].markers[1].color.r = color().r;
+    //marker.controls[0].markers[1].color.g = color().g;
+    //marker.controls[0].markers[1].color.b = color().b;
   }
 };
 
