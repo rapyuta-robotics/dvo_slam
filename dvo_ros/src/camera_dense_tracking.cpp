@@ -324,7 +324,7 @@ void CameraDenseTracker::handleImages(
 
   if(use_dense_tracking_estimate_)
   {
-    publishPose(h, accumulated_transform * from_baselink_to_asus.inverse(), "baselink_estimate");
+    publishPose(h, accumulated_transform * from_baselink_to_asus.inverse(), "base_link_estimate");
   }
 
   sw_callback.stopAndPrint();
