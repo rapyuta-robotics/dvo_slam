@@ -99,9 +99,10 @@ void DenseTracker::configure(const Config& config)
 
 bool DenseTracker::match(RgbdImagePyramid& reference, RgbdImagePyramid& current, Eigen::Affine3d& transformation)
 {
+  //std::cout<<"Matching"<<std::endl;
   Result result;
   result.Transformation = transformation;
-
+ 
   bool success = match(reference, current, result);
 
   transformation = result.Transformation;
@@ -125,13 +126,14 @@ bool DenseTracker::match(dvo::core::RgbdImagePyramid& reference, dvo::core::Rgbd
 {
   reference.compute(cfg.getNumLevels());
   reference_selection_.setRgbdImagePyramid(reference);
-
+  std::cout<<"Matching"<<std::endl;
   return match(reference_selection_, current, result);
 }
 
 /** This function finds transform between current and Reference frame */
 bool DenseTracker::match(dvo::core::PointSelection& reference, dvo::core::RgbdImagePyramid& current, dvo::DenseTracker::Result& result)
 {
+ 
   current.compute(cfg.getNumLevels());
 
   bool success = true;

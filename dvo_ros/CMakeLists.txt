@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(dvo_ros)
 
-find_package(catkin REQUIRED COMPONENTS roscpp tf tf_conversions eigen_conversions dynamic_reconfigure dvo_core sensor_msgs image_transport message_filters cv_bridge visualization_msgs interactive_markers pcl_ros)
+find_package(catkin REQUIRED COMPONENTS roscpp tf tf_conversions eigen_conversions dynamic_reconfigure dvo_core sensor_msgs image_transport message_filters cv_bridge visualization_msgs interactive_markers pcl_ros nav_msgs)
 find_package(cmake_modules REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common)
 find_package(Eigen3 REQUIRED)
@@ -18,13 +18,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-ve
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES dvo_ros
+  LIBRARIES dvo_ros 
   DEPENDS OpenCV PCL
 )
 
 include_directories(
   "include"
   ${dvo_ros_INCLUDE_DIRS}
+  ${dvo_core_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
@@ -41,6 +42,7 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${dvo_core_LIBRARIES}
 )
 
 add_library(camera_tracker_nodelet
@@ -53,12 +55,21 @@ target_link_libraries(camera_tracker_nodelet
 
 add_dependencies(camera_tracker_nodelet ${PROJECT_NAME}_gencfg)
 
+#add_executable(camera_tracker
+#     src/camera_tracker_node.cpp
+#)
+
 add_executable(camera_tracker
-     src/camera_tracker_node.cpp
+     src/visual_odom.cpp
 )
+
 
 target_link_libraries(camera_tracker
     ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
 )
 
-add_dependencies(camera_tracker ${PROJECT_NAME}_gencfg)
+add_dependencies(camera_tracker 
+    ${PROJECT_NAME}_gencfg 
+    ${catkin_EXPORTED_TARGETS} 
+) 

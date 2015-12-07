@@ -33,7 +33,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-
+#include <nav_msgs/Odometry.h>
 #include <image_transport/image_transport.h>
 
 #include <Eigen/Geometry>
@@ -83,7 +83,10 @@ private:
   // Pose publisher and subscriber
   ros::Publisher pose_pub_;
   ros::Subscriber pose_sub_;
+  ros::Publisher odom_pub_;
 
+  //parameters used for odom publisher
+  
 
   // Custom reconfigure server from cfg file to set parameters online fashion
   ReconfigureServer reconfigure_server_;
@@ -106,7 +109,8 @@ private:
   // Publishers
   void publishTransform(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame);
   void publishPose(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame);
-
+  void publishOdom(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame);
+  
 public:
   /** @brief Node:  Constructor
   */

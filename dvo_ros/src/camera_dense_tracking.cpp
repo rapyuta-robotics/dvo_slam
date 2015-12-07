@@ -55,7 +55,7 @@ CameraDenseTracker::CameraDenseTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_
 
   ROS_INFO("2: Publishing Pose");
   pose_pub_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("rgbd/pose", 1);
-
+  odom_pub_ = nh.advertise<nav_msgs::Odometry>("odom",1);
   ROS_INFO("3: Reconfigure server callback");
   ReconfigureServer::CallbackType reconfigure_server_callback = boost::bind(&CameraDenseTracker::handleConfig, this, _1, _2);
   reconfigure_server_.setCallback(reconfigure_server_callback);
@@ -189,7 +189,7 @@ void CameraDenseTracker::handlePose(const geometry_msgs::PoseWithCovarianceStamp
   tf::transformTFToEigen(tmp, latest_absolute_transform_);
 
   if(!use_dense_tracking_estimate_)
-    publishPose(pose->header, latest_absolute_transform_, "baselink_estimate");
+    publishPose(pose->header, latest_absolute_transform_, "base_link_estimate");
 }
 
 // change here for resolution of images
@@ -345,26 +345,43 @@ void CameraDenseTracker::publishTransform(const std_msgs::Header& header, const 
   tb.sendTransform(tf_transform);
 }
 
+void CameraDenseTracker::publishOdom(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
+{
+  ROS_INFO("Publishing odom");
+  if(odom_pub_.getNumSubscribers() == 0) return;
+
+
+
+
+}
+/* @brief: publishes both pose with covariance stamped and odom pose */
 void CameraDenseTracker::publishPose(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
 {
+  /* @todo : Add twist also */
   ROS_INFO("Publishing Pose");
-  if(pose_pub_.getNumSubscribers() == 0) return;
+  //if(pose_pub_.getNumSubscribers() == 0) return;
 
   geometry_msgs::PoseWithCovarianceStampedPtr msg(new geometry_msgs::PoseWithCovarianceStamped);
 
+  nav_msgs::Odometry odom;
   static int seq = 1;
 
   msg->header.seq = seq++;
   msg->header.frame_id = frame;
   msg->header.stamp = header.stamp;
 
+  odom.header.stamp = header.stamp;
+  odom.header.frame_id = "world";
+  odom.child_frame_id = "base_link_estimate" ;
   tf::Transform tmp;
 
   tf::transformEigenToTF(transform, tmp);
   tf::poseTFToMsg(tmp, msg->pose.pose);
+  tf::poseTFToMsg(tmp,odom.pose.pose);
 
   msg->pose.covariance.assign(0.0);
 
+  odom_pub_.publish(odom);
   pose_pub_.publish(msg);
 }
 
