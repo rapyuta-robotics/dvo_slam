@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-ve
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES dvo_ros 
+  LIBRARIES dvo_ros
   DEPENDS OpenCV PCL
 )
 
@@ -33,10 +33,10 @@ include_directories(
 )
 
 
-add_library(${PROJECT_NAME} 
+add_library(${PROJECT_NAME}
     src/camera_base.cpp
     src/camera_dense_tracking.cpp
-    
+
     src/visualization/ros_camera_trajectory_visualizer.cpp
 )
 
@@ -55,13 +55,13 @@ target_link_libraries(camera_tracker_nodelet
 
 add_dependencies(camera_tracker_nodelet ${PROJECT_NAME}_gencfg)
 
-#add_executable(camera_tracker
-#     src/camera_tracker_node.cpp
-#)
-
 add_executable(camera_tracker
-     src/visual_odom.cpp
+     src/camera_tracker_node.cpp
 )
+
+#add_executable(camera_tracker
+#     src/visual_odom.cpp
+#)
 
 
 target_link_libraries(camera_tracker
@@ -69,7 +69,7 @@ target_link_libraries(camera_tracker
     ${catkin_LIBRARIES}
 )
 
-add_dependencies(camera_tracker 
-    ${PROJECT_NAME}_gencfg 
-    ${catkin_EXPORTED_TARGETS} 
-) 
+add_dependencies(camera_tracker
+    ${PROJECT_NAME}_gencfg
+    ${catkin_EXPORTED_TARGETS}
+)

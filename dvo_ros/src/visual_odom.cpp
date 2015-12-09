@@ -1,259 +1,273 @@
-/**
-* This code provide Visual odometry from RGBD frames using dvo libraries.
-*
-*/
-
-#include <dvo_ros/visual_odom.h>
+#include <iostream>
+#include <ros/ros.h>
+#include <ros/console.h>
+#include <tf/transform_listener.h>
+#include <dvo/dense_tracking.h>
+#include <dvo/core/rgbd_image.h>
+#include <dvo/core/surface_pyramid.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <nav_msgs/Odometry.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <dynamic_reconfigure/server.h>
+#include <dvo_ros/CameraDenseTrackerConfig.h>
+#include <dvo_ros/util/util.h>
+#include <dvo_ros/util/configtools.h>
 
 using namespace dvo;
+using namespace dvo_ros;
+using namespace dvo::core;
+class VisualOdomNode{
+public:
+	ros::NodeHandle nh_;
+	dvo::core::RgbdImagePyramidPtr current_, reference_;
+	Eigen::Affine3d accumulated_transform_, from_baselink_to_asus_, latest_absolute_transform_;
 
+	//dynamic reconfigure
+	typedef dynamic_reconfigure::Server<dvo_ros::CameraDenseTrackerConfig> ReconfigureServer;
+	ReconfigureServer reconfigure_server_;
+	bool use_dense_tracking_estimate_;
+  	dvo::DenseTracker::Config tracker_cfg;
 
+	//dvo stuff
+	boost::shared_ptr<dvo::DenseTracker> tracker;
+	boost::mutex tracker_mutex_;
+	//global variables
+	cv::Mat intensity_, depth_;
+	dvo::core::IntrinsicMatrix intrinsics_;
+	double camera_width_,camera_height_;
+	bool first_,connected;
+	// message filter for sync input
+	message_filters::Subscriber<sensor_msgs::Image> rgb_image_subscriber_;
+	message_filters::Subscriber<sensor_msgs::Image> depth_image_subscriber_;
+  	message_filters::Subscriber<sensor_msgs::CameraInfo> rgb_camera_info_subscriber_;
+  	message_filters::Subscriber<sensor_msgs::CameraInfo> depth_camera_info_subscriber_;
 
+  	typedef message_filters::sync_policies::ApproximateTime<
+                sensor_msgs::Image,
+                sensor_msgs::Image,
+                sensor_msgs::CameraInfo,
+                sensor_msgs::CameraInfo
+                > MySyncPolicy;
 
+    message_filters::Synchronizer<MySyncPolicy> sync;
+    message_filters::Connection connection;
+	VisualOdomNode(ros::NodeHandle& nh);
+	void startStream();
+	void findTransform();
+	void handleConfig(dvo_ros::CameraDenseTrackerConfig& config, uint32_t level);
+	//void run();
+	void RGBDcallback(const sensor_msgs::Image::ConstPtr& rgb_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::CameraInfo::ConstPtr& rgb_info, const sensor_msgs::CameraInfo::ConstPtr& depth_info);
+};
 
-CameraBase::CameraBase(ros::NodeHandle& nh, ros::NodeHandle& nh_private) :
-  nh_(nh),
-  nh_private_(nh_private),
-
-  rgb_image_subscriber_(nh, "camera/rgb/image_raw", 1),
-  depth_image_subscriber_(nh, "camera/depth_registered/image_raw", 1),
-  rgb_camera_info_subscriber_(nh, "camera/rgb/camera_info", 1),
-  depth_camera_info_subscriber_(nh, "camera/depth_registered/camera_info", 1),
-
-  synchronizer_(RGBDWithCameraInfoPolicy(5), rgb_image_subscriber_, depth_image_subscriber_, rgb_camera_info_subscriber_, depth_camera_info_subscriber_),
-
-  connected(false)
+VisualOdomNode::VisualOdomNode(ros::NodeHandle& nh):
+	rgb_image_subscriber_(nh, "camera/rgb/image_raw", 1),
+  	depth_image_subscriber_(nh, "camera/depth_registered/image_raw", 1),
+  	rgb_camera_info_subscriber_(nh, "camera/rgb/camera_info", 1),
+  	depth_camera_info_subscriber_(nh, "camera/depth_registered/camera_info", 1),
+	sync(MySyncPolicy(5), rgb_image_subscriber_,depth_image_subscriber_,rgb_camera_info_subscriber_,depth_camera_info_subscriber_),
+	connected(false),
+	first_(true),
+	reconfigure_server_(nh),
+	use_dense_tracking_estimate_(false),
+	tracker_cfg(dvo::DenseTracker::getDefaultConfig())
 {
+
+
+	ROS_INFO("starting vo node");
+	boost::shared_ptr<dvo::DenseTracker> tracker();
+	ReconfigureServer::CallbackType reconfigure_server_callback = boost::bind(&VisualOdomNode::handleConfig, this, _1, _2);
+  	reconfigure_server_.setCallback(reconfigure_server_callback);
+	startStream();
 }
 
-CameraBase::~CameraBase()
+
+void VisualOdomNode::handleConfig(dvo_ros::CameraDenseTrackerConfig& config, uint32_t level)
 {
-  stopSynchronizedImageStream();
+	ROS_INFO("Handling Config");
+
+	if(level == 0) return;
+
+	if(level & CameraDenseTracker_RunDenseTracking)
+	{
+	if(config.run_dense_tracking)
+	{
+	  startStream();
+	}
+	else
+	{
+
+	}
+	}
+
+	if(!config.run_dense_tracking && config.use_dense_tracking_estimate)
+	{
+	config.use_dense_tracking_estimate = false;
+	}
+
+	use_dense_tracking_estimate_ = config.use_dense_tracking_estimate;
+
+	if(level & CameraDenseTracker_ConfigParam)
+	{
+	// fix config, so we don't die by accident
+		if(config.coarsest_level < config.finest_level)
+		{
+			config.finest_level = config.coarsest_level;
+		}
+		config.use_dense_tracking_estimate= true;
+		config.run_dense_tracking = true;
+		dvo_ros::util::updateConfigFromDynamicReconfigure(config, tracker_cfg);
+
+		// we are called in the ctor as well, but at this point we don't have a tracker instance
+		if(tracker)
+		{
+		  	// lock tracker so we don't reconfigure it while it is running
+		  	boost::mutex::scoped_lock lock(tracker_mutex_);
+		  	tracker->configure(tracker_cfg);
+
+		}
+
+		ROS_INFO_STREAM("reconfigured tracker, config ( " << tracker_cfg << " )");
+	}
+
+
 }
 
-bool CameraBase::isSynchronizedImageStreamRunning()
+void VisualOdomNode::startStream()
 {
-  return connected;
+	if(!connected)
+  	{
+    	connection = sync.registerCallback(boost::bind(&VisualOdomNode::RGBDcallback,this,_1,_2,_3,_4));
+    	connected = true;
+  	}
 }
 
-void CameraBase::startSynchronizedImageStream()
+/*
+void VisualOdomNode::run()
 {
-  if(!connected)
-  {
-    connection = synchronizer_.registerCallback(boost::bind(&CameraBase::handleImages, this, _1, _2, _3, _4));
-    connected = true;
-  }
-}
-
-void CameraBase::stopSynchronizedImageStream()
-{
-  if(connected)
-  {
-    connection.disconnect();
-    connected = false;
-  }
-}
-
-namespace rapyuta 
-{
-
-
-VisualOdometry::VisualOdometry(ros::NodeHandle& nh, ros::NodeHandle& nh_private) :
-	CameraBase(nh,nh_private)
-{
-	ROS_INFO("In VO node");
-	odom_pub_= nh.advertise<nav_msgs::Odometry>("odom", 1);
-	current_time = ros::Time::now();
-  	last_time = ros::Time::now();
-	startSynchronizedImageStream();
-	vis_= new dvo::visualization::NoopCameraTrajectoryVisualizer();
-	from_baselink_to_asus.setIdentity();
-	latest_absolute_transform_.setIdentity();
-  	accumulated_transform.setIdentity();
-}
-
-VisualOdometry::~VisualOdometry()
-{
+	message_filters::Connection connection;
+	connection = sync.registerCallback(boost::bind(&VisualOdomNode::RGBDcallback,this,_1,_2,_3,_4));
+	connection.disconnect();
+	//findTransform();
 
 }
+*/
 
-void VisualOdometry::handleImages(
-	const sensor_msgs::Image::ConstPtr& rgb_image_msg,
-	const sensor_msgs::Image::ConstPtr& depth_image_msg,
-    const sensor_msgs::CameraInfo::ConstPtr& rgb_camera_info_msg,
-    const sensor_msgs::CameraInfo::ConstPtr& depth_camera_info_msg )
+
+void VisualOdomNode::findTransform()
 {
-	ROS_INFO("handleImages");
-	boost::mutex::scoped_lock lock(tracker_mutex_); // for multiple threads
-	if(depth_camera_info_msg->width != rgb_camera_info_msg->width || depth_camera_info_msg->height != rgb_camera_info_msg->height)
+	ROS_INFO("findTransform");
+	// intialize dvo stuff
+	dvo::core::RgbdCameraPyramid camera(camera_width_,camera_height_, intrinsics_);
+	//dvo::DenseTracker::Config cfg = dvo::DenseTracker::getDefaultConfig();
+	camera.build(tracker_cfg.getNumLevels());
+
+
+
+	//before creating new swap with previous
+	reference_.swap(current_);
+	current_ = camera.create(intensity_,depth_);
+	Eigen::Affine3d transform;
+	transform.setIdentity();
+	//std::cout<< reference_<<std::endl;
+	//std::cout<< current_<< std::endl;
+	//std::cout << transform <<std::endl;
+	bool success = tracker->match(*reference_, *current_, transform);
+	if(success)
+	{
+		//frames_since_last_success = 0;
+		accumulated_transform_ = accumulated_transform_ * transform;
+	}
+	else
+	{
+		reference_.swap(current_);
+	}
+	//std::cout<<"Relative transform is :" << transform <<std::endl;
+	//std::cout<<"accumulated_transform is :"<< accumulated_transform_ <<std::endl;
+	return;
+}
+
+
+void VisualOdomNode::RGBDcallback(const sensor_msgs::Image::ConstPtr& rgb_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::CameraInfo::ConstPtr& rgb_info, const sensor_msgs::CameraInfo::ConstPtr& depth_info)
+{	//create dvo suitable variable from raw data
+	ROS_INFO("RGBDcallback");
+	boost::mutex::scoped_lock lock(tracker_mutex_);
+	if(depth_info->width != rgb_info->width || depth_info->height != rgb_info->height)
 	{
 		ROS_WARN("RGB and depth image have different size!");
 
 		return;
 	}
-	current_time = ros::Time::now();
-	cv::Mat intensity, depth;
-	cv::Mat rgb_in = cv_bridge::toCvShare(rgb_image_msg)->image;
+
+	cv::Mat rgb_in = cv_bridge::toCvShare(rgb_msg)->image;
 
 	if(rgb_in.channels() == 3)
 	{
 		cv::Mat tmp;
 		cv::cvtColor(rgb_in, tmp, CV_BGR2GRAY, 1);
-		tmp.convertTo(intensity, CV_32F);
+		tmp.convertTo(intensity_, CV_32F);
 	}
 	else
 	{
-		rgb_in.convertTo(intensity, CV_32F);
+		rgb_in.convertTo(intensity_, CV_32F);
 	}
 
-	cv::Mat depth_in = cv_bridge::toCvShare(depth_image_msg)->image;
+	cv::Mat depth_in = cv_bridge::toCvShare(depth_msg)->image;
 
 	if(depth_in.type() == CV_16UC1)
 	{
-		dvo::core::SurfacePyramid::convertRawDepthImageSse(depth_in, depth, 0.001);
+		dvo::core::SurfacePyramid::convertRawDepthImageSse(depth_in, depth_, 0.001);
 	}
 	else
 	{
-		depth = depth_in;
+		depth_ = depth_in;
 	}
 
-	dvo::core::IntrinsicMatrix intrinsics = dvo::core::IntrinsicMatrix::create(rgb_camera_info_msg->P[0], rgb_camera_info_msg->P[5], rgb_camera_info_msg->P[2], rgb_camera_info_msg->P[6]);
-	//camera->build(1);
-	//camera = new dvo::core::RgbdCameraPyramidPtr(rgb_camera_info_msg->width,rgb_camera_info_msg->height,intrinsics));
-	dvo::core::RgbdCameraPyramid camera(rgb_camera_info_msg->width,rgb_camera_info_msg->height,intrinsics);
-	dvo::DenseTracker::Config cfg = dvo::DenseTracker::getDefaultConfig();
-	camera.build(cfg.getNumLevels());
-	dvo::DenseTracker tracker;
-	static Eigen::Affine3d first;
+	intrinsics_ = dvo::core::IntrinsicMatrix::create(rgb_info->P[0], rgb_info->P[5], rgb_info->P[2], rgb_info->P[6]);
+	camera_width_ = rgb_info->width;
+	camera_height_ = rgb_info->height;
 
-	if(!reference)
+	if(first_)
 	{
-		ROS_INFO("initialize transforms");
-		accumulated_transform = latest_absolute_transform_ * from_baselink_to_asus;
-		first = accumulated_transform;
-		current = camera.create(intensity, depth);
-		reference= camera.create(intensity, depth);
-		tracker.configure(cfg);
-		last_time = ros::Time::now();
+		dvo::core::RgbdCameraPyramid camera(camera_width_,camera_height_, intrinsics_);
+		dvo::DenseTracker::Config cfg = dvo::DenseTracker::getDefaultConfig();
+		camera.build(cfg.getNumLevels());
+		current_ = camera.create(intensity_,depth_);
+		accumulated_transform_.setIdentity();
+		first_ = false;
 		return;
 	}
-
-	
-	current = camera.create(intensity, depth);
-
-	// time delay compensation TODO: use driver settings instead
-	std_msgs::Header h = rgb_image_msg->header;
-	//h.stamp -= ros::Duration(0.05);
-
-	Eigen::Affine3d transform;
-
-	ROS_INFO("Starting tracker match");
-	bool success = tracker.match(*reference, *current, transform);
-	ROS_INFO_STREAM("Tracker matching is :"<< success);
-	//sw_match.stopAndPrint();
-
-	if(success)
-	{
-		//frames_since_last_success = 0;
-		accumulated_transform = accumulated_transform * transform;
-
-		Eigen::Matrix<double, 6, 6> covariance; // Is this used?
-
-		//tracker->getCovarianceEstimate(covariance);
-
-		//std::cerr << covariance << std::endl << std::endl;
-		ROS_INFO("Visualizing trajectory");
-		vis_->trajectory("estimate")->
-		    color(dvo::visualization::Color::blue())
-		    .add(accumulated_transform);
-		ROS_INFO("Visualizing current frame");
-
-		vis_->camera("current")->
-		    color(dvo::visualization::Color::red()).
-		    update(current->level(0), accumulated_transform).
-		    show();
-
-	}
 	else
 	{
-		//frames_since_last_success++;
-		reference.swap(current);
-		ROS_WARN("fail");
+		findTransform();
 	}
-
-
-	publishTransform(h, accumulated_transform * from_baselink_to_asus.inverse(), "base_link_estimate");
-	//  publishTransform(rgb_image_msg->header, first_transform.inverse() * accumulated_transform, "asus_estimate");
-	publishOdom(h,transform,"base_link_estimate");
-	reference.swap(current);
 }
 
-void VisualOdometry::publishTransform(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
-{
-	/** 
-	Publishes both transform  
-	*/
-	ROS_INFO("Publishing transform and Odometry");
-
-	static tf::TransformBroadcaster tb;
-	tf::StampedTransform tf_transform;
-	tf_transform.frame_id_ = "world";
-	tf_transform.child_frame_id_ = frame;
-	tf_transform.stamp_ = header.stamp;
-
-	tf::transformEigenToTF(transform, tf_transform);
-
-	tb.sendTransform(tf_transform);
-}
-
-void VisualOdometry::publishOdom(const std_msgs::Header& header, const Eigen::Affine3d& transform, const std::string frame)
-{
-	nav_msgs::Odometry odom_msg;
-	odom_msg.header.stamp = header.stamp;
-	odom_msg.header.frame_id = "world";
-	odom_msg.child_frame_id = frame;
-
-	tf::Transform delta_tf;
-	tf::transformEigenToTF(transform, delta_tf);
-	tf::poseTFToMsg(delta_tf,odom_msg.pose.pose);
-	if(!last_time.isZero())
-	{
-		double delta_t = (current_time - last_time).toSec();
-		if(delta_t)
-		{
-			odom_msg.twist.twist.linear.x = delta_tf.getOrigin().getX() / delta_t;
-			odom_msg.twist.twist.linear.y = delta_tf.getOrigin().getY() / delta_t;
-			odom_msg.twist.twist.linear.z = delta_tf.getOrigin().getZ() / delta_t;
-			tf::Quaternion delta_rot = delta_tf.getRotation();
-			tfScalar angle = delta_rot.getAngle();
-			tf::Vector3 axis = delta_rot.getAxis();
-			tf::Vector3 angular_twist = axis * angle / delta_t;
-			odom_msg.twist.twist.angular.x = angular_twist.x();
-			odom_msg.twist.twist.angular.y = angular_twist.y();
-			odom_msg.twist.twist.angular.z = angular_twist.z();
-		}		
-	}
-
-	odom_msg.pose.covariance.assign(0.0);
-	odom_msg.twist.covariance.assign(0.0);
-
-	odom_pub_.publish(odom_msg);
-	last_time = current_time;
-
-
-}
-
-
-
-}// namespace rapyuta
 int main(int argc, char *argv[])
 {
-	/* code */
+
 	ros::init(argc,argv,"Visual odom");
 	ros::NodeHandle nh;
 	ros::NodeHandle nh_private("~");
-	rapyuta::VisualOdometry vo(nh,nh_private);
+	VisualOdomNode vo(nh);
 	ROS_INFO("started vo...");
-	ros::spin(); 
+	// while(ros::ok())
+	// {
+	// 	vo.run();
+
+	// }
+	ros::spin();
+
 	return 0;
 }

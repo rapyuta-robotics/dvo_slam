@@ -57,6 +57,7 @@ CameraDenseTracker::CameraDenseTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_
   pose_pub_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("rgbd/pose", 1);
   odom_pub_ = nh.advertise<nav_msgs::Odometry>("odom",1);
   ROS_INFO("3: Reconfigure server callback");
+  std::cout<<tracker<<std::endl;
   ReconfigureServer::CallbackType reconfigure_server_callback = boost::bind(&CameraDenseTracker::handleConfig, this, _1, _2);
   reconfigure_server_.setCallback(reconfigure_server_callback);
 
@@ -77,6 +78,7 @@ CameraDenseTracker::CameraDenseTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_
   //  .save(false)
   //;
 }
+
 
 CameraDenseTracker::~CameraDenseTracker()
 {
@@ -113,6 +115,7 @@ void CameraDenseTracker::reset(const sensor_msgs::CameraInfo::ConstPtr& camera_i
 void CameraDenseTracker::handleConfig(dvo_ros::CameraDenseTrackerConfig& config, uint32_t level)
 {
   ROS_INFO("Handling Config");
+   ROS_INFO_STREAM("reconfigured tracker, config ( " << tracker_cfg << " )");
   if(level == 0) return;
 
   if(level & CameraDenseTracker_RunDenseTracking)
@@ -309,7 +312,7 @@ void CameraDenseTracker::handleImages(
         color(dvo::visualization::Color::red()).
         update(current->level(0), accumulated_transform).
         show();
-    
+
   }
   else
   {

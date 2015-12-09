@@ -31,7 +31,7 @@
 #include <dvo/core/rgbd_image.h>
 #include <dvo/visualization/camera_trajectory_visualizer.h>
 
-using namespace dvo;
+
 
 typedef message_filters::sync_policies::ApproximateTime<
                 sensor_msgs::Image,
