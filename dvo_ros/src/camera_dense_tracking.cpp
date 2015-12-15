@@ -48,7 +48,7 @@ CameraDenseTracker::CameraDenseTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_
   tracker_cfg(DenseTracker::getDefaultConfig()),
   frames_since_last_success(0),
   reconfigure_server_(nh_private),
-  vis_(new dvo::visualization::NoopCameraTrajectoryVisualizer()),
+  vis_(new dvo_ros::visualization::RosCameraTrajectoryVisualizer(nh)),
   use_dense_tracking_estimate_(false)
 {
   ROS_INFO("1: CameraDenseTracker::Constructor(...)");
