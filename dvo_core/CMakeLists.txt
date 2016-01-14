@@ -12,13 +12,23 @@ find_package(OpenCV 2.4.8 REQUIRED)
 find_package(TBB REQUIRED)
 
 
+# Set the build type.  Options are:
+#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
+#  Debug          : w/ debug symbols, w/o optimization
+#  Release        : w/o debug symbols, w/ optimization
+#  RelWithDebInfo : w/ debug symbols, w/ optimization
+#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
+#set(ROS_BUILD_TYPE RelWithDebInfo)
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES dvo_core dvo_visualization
   DEPENDS OpenCV PCL
 )
 
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-vectorize")
+
 
 include_directories(
   "include"
@@ -30,6 +40,18 @@ include_directories(
   /usr/include/vtk-5.8
 )
 
+# VTK library
+#find_package(VTK REQUIRED)
+#include_directories(${VTK_INCLUDE_DIRS})
+
+# SSE flags
+#rosbuild_check_for_sse()
+
+
+#set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
+#   "${SSE_FLAGS} -O3 -march=native"
+#)
+
 add_library(dvo_core
     src/core/interpolation.cpp
     src/core/intrinsic_matrix.cpp
@@ -40,11 +62,11 @@ add_library(dvo_core
     src/core/point_selection.cpp
     src/core/surface_pyramid.cpp
     src/core/weight_calculation.cpp
-
+    
     src/util/histogram.cpp
-
+    
     src/visualization/camera_trajectory_visualizer.cpp
-
+    
     src/dense_tracking.cpp
     src/dense_tracking_impl.cpp
     src/dense_tracking_config.cpp
@@ -66,3 +88,8 @@ add_library(dvo_visualization
 target_link_libraries(dvo_visualization
   dvo_core
 )
+
+#rosbuild_add_executable(sse_test
+#    src/sse_test.cpp
+#    src/core/math_sse.cpp
+#)

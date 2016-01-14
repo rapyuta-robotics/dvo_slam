@@ -10,28 +10,21 @@ find_package(Eigen3 REQUIRED)
 find_package(G2O REQUIRED)
 find_package(SuiteSparse REQUIRED)
 #find_package(sophus REQUIRED)
-#find_package(Boost REQUIRED thread)
+find_package(Boost REQUIRED)
 find_package(OpenCV 2.4.8 REQUIRED)
 find_package(TBB REQUIRED)
 
-#LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse -msse2 -msse3 -msse4 -ftree-vectorize")
 
-IF(G2O_FOUND)
-message(STATUS "found g2o ${G2O_FOUND}")
-ELSE()
-message(ERROR "g2o missing")
-ENDIF()
 
 # dynamic reconfigure
-generate_dynamic_reconfigure_options(cfg/GraphVisualizer.cfg cfg/KeyframeSlam.cfg)
+generate_dynamic_reconfigure_options(cfg/graph_visualizer.cfg cfg/dvo_slam.cfg)
 
 # messages
 add_message_files(FILES
   PoseStampedArray.msg
 )
-
 generate_messages(DEPENDENCIES std_msgs geometry_msgs )
 
 catkin_package(
@@ -52,31 +45,32 @@ include_directories(
 
 
 
+
 # VTK library
 #find_package(VTK REQUIRED)
 #include_directories(${VTK_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} 
   src/keyframe_tracker.cpp
   src/keyframe_graph.cpp
   src/keyframe_constraint_search.cpp
   src/camera_keyframe_tracking.cpp
-
+  
   src/config.cpp
-
+  
   src/tracking_result_evaluation.cpp
   src/local_map.cpp
   src/local_tracker.cpp
-
+  
   src/constraints/constraint_proposal.cpp
   src/constraints/constraint_proposal_voter.cpp
   src/constraints/constraint_proposal_validator.cpp
-
+  
   src/serialization/map_serializer_interface.cpp
   src/serialization/map_serializer.cpp
-
+  
   src/visualization/graph_visualizer.cpp
-
+  
   src/types.cpp
 )
 
@@ -97,5 +91,4 @@ add_executable(camera_keyframe_tracker
 target_link_libraries(camera_keyframe_tracker
   ${PROJECT_NAME}
 )
-
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)

@@ -10,6 +10,8 @@ Panels:
         - /Image1
         - /PointStamped1
         - /Odometry1
+        - /TF1
+        - /TF1/Status1
       Splitter Ratio: 0.5
     Tree Height: 684
   - Class: rviz/Selection
@@ -92,7 +94,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /camera/rgb/image_color
+      Image Topic: /camera/rgb/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -113,16 +115,53 @@ Visualization Manager:
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Keep: 1000
       Length: 1
       Name: Odometry
       Position Tolerance: 0.1
       Topic: /odom
+      Value: false
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.1
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_link_estimate:
+          Value: true
+        camera_depth_frame:
+          Value: true
+        camera_depth_optical_frame:
+          Value: true
+        camera_link:
+          Value: true
+        camera_rgb_frame:
+          Value: true
+        camera_rgb_optical_frame:
+          Value: true
+        world:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base_link_estimate:
+            {}
+      Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 255; 255; 255
+    Background Color: 0; 0; 0
     Fixed Frame: world
     Frame Rate: 30
   Name: root
@@ -144,7 +183,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 22.3059
+      Distance: 9.91786
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -156,10 +195,10 @@ Visualization Manager:
         Z: 1.98493
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.0801991
+      Pitch: -0.254801
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.34225
+      Yaw: 5.79043
     Saved: ~
 Window Geometry:
   Displays:

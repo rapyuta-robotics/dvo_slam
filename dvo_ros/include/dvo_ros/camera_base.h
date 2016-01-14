@@ -2,7 +2,7 @@
  *  This file is part of dvo.
  *
  *  Copyright 2012 Christian Kerl <christian.kerl@in.tum.de> (Technical University of Munich)
- *  For more information see <http://vision.in.tum.de/data/software/dvo>. 
+ *  For more information see <http://vision.in.tum.de/data/software/dvo>.
  *
  *  dvo is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

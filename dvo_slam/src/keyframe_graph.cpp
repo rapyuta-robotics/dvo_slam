@@ -706,7 +706,6 @@ private:
       g2o::OptimizableGraph::Vertex* v= (g2o::OptimizableGraph::Vertex*)(it->second);
       if (keyframegraph_.vertex(v->id()))
         continue;
-
       g2o::VertexSE3* v1 = (g2o::VertexSE3*) v;
       g2o::VertexSE3* v2 = new g2o::VertexSE3();
       v2->setId(v1->id());
@@ -717,7 +716,6 @@ private:
       //v2->edges().clear();
       v2->setHessianIndex(-1);
       keyframegraph_.addVertex(v2);
-
     }
     for (g2o::HyperGraph::EdgeSet::iterator it=g->edges().begin(); it!=g->edges().end(); ++it)
     {
@@ -778,8 +776,9 @@ private:
     // get last odometry vertex from global graph, which will become new keyframe vertex
     g2o::VertexSE3* kv = (g2o::VertexSE3*) keyframegraph_.vertex(next_odometry_vertex_id_);
     assert(kv != 0);
-    assert(keyframegraph_.changeId(kv, next_keyframe_id_));
-    
+//    assert(keyframegraph_.changeId(kv, next_keyframe_id_));
+    keyframegraph_.changeId(kv, next_keyframe_id_);
+
     if(!keyframes_.empty())
     {
       g2o::VertexSE3* kv = (g2o::VertexSE3*) keyframegraph_.vertex(next_keyframe_id_);

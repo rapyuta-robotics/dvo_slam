@@ -91,7 +91,7 @@ void EdgeErrorSerializer::serialize(const dvo_slam::KeyframeGraph& map)
       stream_ << type << " " << edge->error().transpose() << " " << edge->chi2() << " " << rho.transpose() <<  std::endl;
   }
 }
-// Update: uncommenting this. 
+
 MessageSerializer::MessageSerializer(dvo_slam::PoseStampedArray& msg) :
     msg_(msg)
 {

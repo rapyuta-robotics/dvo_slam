@@ -1,5 +1,5 @@
-<package>
-  <name>dvo_core</name>
+<package format="2">
+ <name>dvo_core</name>
   <version>0.1.0</version>
   <description>
     dvo_core
@@ -9,15 +9,12 @@
 
   <url>https://github.com/tum-vision/dvo_slam</url>
   <author>Christian Kerl</author>
-
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>cmake_modules</depend>
 
-  <build_depend>cmake_modules</build_depend>
+  <depend>pcl_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>sophus</depend>
 
-  <build_depend>libpcl-all-dev</build_depend>
-  <!--build_depend>sophus</build_depend-->
-  <build_depend>libopencv-dev</build_depend>
   
-  <run_depend>libpcl-all</run_depend>
-  <run_depend>libopencv-dev</run_depend>
 </package>

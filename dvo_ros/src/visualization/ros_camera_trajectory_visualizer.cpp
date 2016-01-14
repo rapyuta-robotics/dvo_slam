@@ -65,7 +65,7 @@ public:
     marker_server_.erase(name());
     point_cloud_aggregator_.remove(name());
   };
-  // changing to show camera only
+
   virtual void show(Option option = ShowCameraAndCloud)
   {
     if(!user_override_)
@@ -327,7 +327,6 @@ private:
 
     m.points.push_back(p);
 
-    //Commenting
     //parent.markers.push_back(m);
     parent.markers.push_back(mbox);
   }
@@ -359,14 +358,13 @@ public:
 
   virtual TrajectoryVisualizer& add(const Eigen::Affine3d& pose)
   {
-    ROS_INFO("Updating marker");
     updateMarkerColor();
 
     geometry_msgs::Point p;
     p.x = pose.translation()(0);
     p.y = pose.translation()(1);
     p.z = pose.translation()(2);
-    //changing
+
     marker_.controls[0].markers[0].points.push_back(p);
 
     marker_server_.insert(marker_);
@@ -389,7 +387,7 @@ private:
     control.always_visible = true;
     control.markers.push_back(m);
 
-    marker.header.frame_id = "world";
+    marker.header.frame_id = "/world";
     marker.name = name + std::string("_trajectory");
     marker.controls.push_back(control);
   }
@@ -476,7 +474,7 @@ private:
     if(point_cloud_topic_.getNumSubscribers() == 0) return;
 
     dvo::visualization::AsyncPointCloudBuilder::PointCloud::Ptr cloud = point_cloud_aggregator_.build();
-    cloud->header.frame_id = "world";
+    cloud->header.frame_id = "/world";
     cloud->is_dense = true;
     point_cloud_topic_.publish(cloud);
   }

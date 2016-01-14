@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>dvo_ros</name>
   <version>0.1.0</version>
   <description>
@@ -12,44 +12,26 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cmake_modules</build_depend>
+  <depend>cmake_modules</depend>
 
-  <build_depend>libpcl-all-dev</build_depend>
-  <build_depend>libopencv-dev</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>tf_conversions</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>dvo_core</build_depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>libopencv-dev</depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>eigen_conversions</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>nav_msgs</depend>
+  <depend>dvo_core</depend>
 
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>message_filters</build_depend>
-  <build_depend>cv_bridge</build_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <build_depend>interactive_markers</build_depend>
-  <build_depend>pcl_ros</build_depend>
+  <depend>sensor_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>message_filters</depend>
+  <depend>cv_bridge</depend>
+  <depend>visualization_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>pcl_ros</depend>
     
-  <run_depend>libpcl-all</run_depend>
-  <run_depend>libopencv-dev</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>tf_conversions</run_depend>
-  <run_depend>eigen_conversions</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>dvo_core</run_depend>
-
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>message_filters</run_depend>
-  <run_depend>cv_bridge</run_depend>
-  <run_depend>visualization_msgs</run_depend>
-  <run_depend>interactive_markers</run_depend>
-  <run_depend>pcl_ros</run_depend>
-  
   <export>
     <dvo_ros_package plugin="${prefix}/nodelet_plugins.xml" />
   </export>

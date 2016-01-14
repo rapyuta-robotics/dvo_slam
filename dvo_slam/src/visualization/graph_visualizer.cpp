@@ -363,7 +363,7 @@ public:
             std::string edge_id = edge_id_builder.str();
 
             visualization_msgs::InteractiveMarker m;
-            m.header.frame_id = "/world";
+            m.header.frame_id = "world";
             m.name = edge_id;
             m.pose.position.x = p(0);
             m.pose.position.y = p(1);
@@ -394,7 +394,7 @@ public:
 
       visualization_msgs::InteractiveMarker marker;
 
-      marker.header.frame_id = "world";
+      marker.header.frame_id = "/world";
       marker.name = std::string("constraints");
       marker.controls.push_back(control);
 

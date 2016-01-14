@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>dvo_slam</name>
   <version>0.1.0</version>
   <description>
@@ -12,40 +12,22 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cmake_modules</build_depend>
+  <depend>cmake_modules</depend>
 
-  <build_depend>libpcl-all-dev</build_depend>
-  <build_depend>libopencv-dev</build_depend>
-  <build_depend>libg2o</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>message_runtime</build_depend>
-  <build_depend>dvo_core</build_depend>
-  <build_depend>dvo_ros</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>message_filters</build_depend>
-  <build_depend>cv_bridge</build_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <build_depend>interactive_markers</build_depend>
-  <build_depend>std_msgs</build_depend>
-    
-  <run_depend>std_msgs</run_depend>  
-  <run_depend>libpcl-all-dev</run_depend>
-  <run_depend>libopencv-dev</run_depend>
-  <run_depend>libg2o</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-
-  <run_depend>dvo_core</run_depend>
-  <run_depend>dvo_ros</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>message_filters</run_depend>
-  <run_depend>cv_bridge</run_depend>
-  <run_depend>visualization_msgs</run_depend>
-  <run_depend>interactive_markers</run_depend>  
+  <depend>libpcl-all-dev</depend>
+  <depend>libopencv-dev</depend>
+  <depend>libg2o</depend>
+  <depend>roscpp</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>message_runtime</depend>
+  <depend>dvo_core</depend>
+  <depend>dvo_ros</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>message_filters</depend>
+  <depend>cv_bridge</depend>
+  <depend>visualization_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>std_msgs</depend>
 </package>
