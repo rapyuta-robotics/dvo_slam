@@ -16,10 +16,6 @@ These packages provide an implementation of the rigid body motion estimation of 
 
     Pose graph SLAM system based on *dvo_core* and integration with ROS.
 
- *  **dvo_benchmark**
-
-    Integration of *dvo_slam* with TUM RGB-D benchmark, see http://vision.in.tum.de/data/datasets/rgbd-dataset.
-
 
 ## Installation
 
@@ -27,29 +23,40 @@ These packages provide an implementation of the rigid body motion estimation of 
     * libg2o
     * vtk
     * tbb
+    * libsuitesparse-dev
 
  *  ROS Indigo:
 
-    ```bash
-    git clone -b asus-indigo https://github.com/rapyuta/dvo_slam
-    roscd catkin_ws
-    catkin_make
-    ```
+ *  Installing g2o
+  1. git clone -b devel https://github.com/rapyuta/g2o.git
+  2. cd git
+  3. mkdir build && cd build
+  4. cmake ..
+  (make sure it is building with csparse that was installed previously)
+  5. make
+  6. sudo make install
+
+ *  Compiling dvo
+  1. git clone -b asus-indigo https://github.com/rapyuta/dvo_slam.git
+  2. link it to your catkin_ws/src
+  3. cd catkin_ws
+  4. catkin_make
+
+
+
 
 ## Usage
 Connect asus.
 Estimating the camera trajectory from an RGB-D image stream:
 
 ```bash
-roslaunch dvo_ros quickstart.launch
+roslaunch dvo_slam quickstart.launch
 ```
-In a different terminal:
-
-```bash
-rosrun rqt_reconfigure rqt_reconfigure
-```
-* Enable camera/driver/depth_registration
-* In camera_tracker enable run_dense_tracking, use_dense_tracking_estimate, use_weighting, reconstruction.
+This will launch openni2, an rviz window and dynamic reconfiguring window.
+In reconfiguring window,
+       - in camera/driver, check depth_registration, check color_depth_synchronization.
+       - in camera_keyframe_tracker/slam, check graph_op_robust, check graph_opt_final.
+       - in camera_keyframe_tracker/tracking, uncheck use_initial_estimate, check run_dense_tracking, check use_dense_tracking_estimate, check use_weighting.
 
 This will show point cloud on the rviz window. Move asus slowly to update the position of new pointclouds.   
 
