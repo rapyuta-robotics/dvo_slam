@@ -20,7 +20,6 @@ These packages provide an implementation of the rigid body motion estimation of 
 ## Installation
 
  *  Dependency(updating the list)
-    * libg2o
     * vtk
     * tbb
     * libsuitesparse-dev
@@ -49,7 +48,7 @@ These packages provide an implementation of the rigid body motion estimation of 
 Connect asus.
 Estimating the camera trajectory from an RGB-D image stream:
 
-```bash
+```
 roslaunch dvo_slam quickstart.launch
 ```
 This will launch openni2, an rviz window and dynamic reconfiguring window.
