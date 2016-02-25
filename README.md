@@ -27,20 +27,23 @@ These packages provide an implementation of the rigid body motion estimation of 
  *  ROS Indigo:
 
  *  Installing g2o
-  1. git clone -b devel https://github.com/rapyuta/g2o.git
-  2. cd git
-  3. mkdir build && cd build
-  4. cmake ..
-  (make sure it is building with csparse that was installed previously)
-  5. make
-  6. sudo make install
+```
+git clone -b devel https://github.com/rapyuta/g2o.git
+cd git
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
+(make sure it is building with csparse that was installed previously)
 
  *  Compiling dvo
-  1. git clone -b asus-indigo https://github.com/rapyuta/dvo_slam.git
-  2. link it to your catkin_ws/src
-  3. cd catkin_ws
-  4. catkin_make
-
+```
+git clone -b asus-indigo https://github.com/rapyuta/dvo_slam.git
+{link it to your catkin_ws/src}
+cd catkin_ws
+catkin_make
+```
 
 
 
