@@ -41,12 +41,14 @@ include_directories(
 
 
 
-add_library(${PROJECT_NAME} 
+add_library(${PROJECT_NAME}
     src/camera_base.cpp
     src/camera_dense_tracking.cpp
     
     src/visualization/ros_camera_trajectory_visualizer.cpp
 )
+
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
