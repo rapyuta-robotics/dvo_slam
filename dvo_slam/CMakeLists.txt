@@ -74,6 +74,8 @@ add_library(${PROJECT_NAME}
   src/types.cpp
 )
 
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+
 target_link_libraries(${PROJECT_NAME}
   ${G2O_CORE_LIBRARY}
   ${G2O_SOLVER_DENSE}
